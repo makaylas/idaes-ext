@@ -7,7 +7,6 @@ pipeline {
   stages {
     stage('root-setup') {
       steps {
-        slackSend (message: "Build Started - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)")
         sh 'yum update -y'
         sh 'yum install -y epel-release'
         sh 'yum install -y gcc gcc-c++ git gcc-gfortran libboost-dev make wget boost boost-thread boost-devel'
@@ -63,12 +62,9 @@ pipeline {
     }
   }
   post {
-    success {
-      slackSend (color: '#00FF00', message: "SUCCESSFUL - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)")
-    }
-
-    failure {
-      slackSend (color: '#FF0000', message: "FAILED - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)")
+    always {
+      emailext attachLog: true, body: "${currentBuild.result}: ${BUILD_URL}", replyTo: 'idaes.jenkins@lbl.gov',
+       subject: "Build Log: ${JOB_NAME} - Build ${BUILD_NUMBER} ${currentBuild.result}", to: 'idaes.jenkins@lbl.gov'
     }
   }
 }
